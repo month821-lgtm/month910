@@ -1,925 +1,371 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>工作日誌與記帳系統</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="工作紀錄">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#faf7f0">
+<meta name="color-scheme" content="only light">
+<title>工作紀錄</title>
 <style>
-  :root {
-    --bg-main: #f8f6f0;         /* 奶油白主背景 */
-    --bg-card: #ffffff;         /* 純白卡片背景 */
-    --bg-sub: #f3efe6;          /* 奶油淺灰次背景 */
-    --border-color: #e6e0d4;    /* 溫暖柔和邊框 */
-    --text-primary: #38322c;    /* 深奶茶黑主文字 */
-    --text-secondary: #7e756b;  /* 柔和灰褐次要文字 */
-    --text-muted: #a3998e;      /* 淡淡提示文字 */
-    --accent-primary: #5c5246;  /* 沉穩奶茶棕主色 */
-    --accent-hover: #484036;    /* 懸停深奶茶色 */
-    --chip-bg: #efebe1;         /* 標籤預設背景 */
-    --chip-active-bg: #5c5246;  /* 標籤選取背景 */
-    --chip-active-text: #faf8f5;/* 標籤選取文字 */
-    --shadow-soft: 0 4px 20px rgba(92, 82, 70, 0.05); /* 超輕柔陰影 */
-    --radius-lg: 16px;
-    --radius-md: 10px;
-    --radius-sm: 6px;
-  }
-
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
-    background-color: var(--bg-main);
-    color: var(--text-primary);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-  }
-
-  /* Header */
-  header {
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
-    padding: 16px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--text-primary);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-  }
-
-  /* Main scroll area */
-  main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  section {
-    display: none;
-  }
-
-  section.on {
-    display: block;
-  }
-
-  /* Navigation Bar */
-  nav {
-    background: var(--bg-card);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-around;
-    padding: 8px 12px;
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  nav button {
-    background: none;
-    border: none;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  nav button.on {
-    background: var(--chip-bg);
-    color: var(--accent-primary);
-    font-weight: 600;
-  }
-
-  /* Cards */
-  .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 18px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow-soft);
-  }
-
-  .card .ch {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    letter-spacing: 0.3px;
-  }
-
-  /* Form Elements */
-  .fgroup {
-    margin-bottom: 16px;
-  }
-
-  .flabel {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .flabel span.cnt {
-    font-size: 12px;
-    font-weight: normal;
-    color: var(--text-muted);
-  }
-
-  input[type="text"], input[type="date"], textarea {
-    width: 100%;
-    padding: 12px 14px;
-    background: var(--bg-main);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    font-size: 15px;
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.2s;
-    font-family: inherit;
-  }
-
-  input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
-    border-color: var(--accent-primary);
-    background: #ffffff;
-  }
-
-  .sub-input {
-    margin-top: 8px;
-    display: none;
-  }
-
-  .sub-input.on {
-    display: block;
-  }
-
-  /* Chips */
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .chip {
-    background: var(--chip-bg);
-    border: 1px solid transparent;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .chip.on {
-    background: var(--chip-active-bg);
-    color: var(--chip-active-text);
-    font-weight: 500;
-  }
-
-  .hint {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 6px;
-  }
-
-  /* Buttons */
-  .btn {
-    width: 100%;
-    padding: 12px 16px;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .btn.primary {
-    background: var(--accent-primary);
-    color: #ffffff;
-  }
-
-  .btn.primary:hover {
-    background: var(--accent-hover);
-  }
-
-  .btn.ghost {
-    background: var(--chip-bg);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-  }
-
-  .btn.ghost:hover {
-    background: var(--border-color);
-  }
-
-  /* Month Selector Controls */
-  .mctrl {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .mctrl button {
-    background: var(--chip-bg);
-    border: 1px solid var(--border-color);
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-primary);
-    font-size: 14px;
-  }
-
-  /* Stats and Rows */
-  .stats {
-    display: flex;
-    justify-content: space-around;
-    text-align: center;
-    padding: 16px 8px;
-  }
-
-  .stats div {
-    flex: 1;
-  }
-
-  .stats b {
-    display: block;
-    font-size: 20px;
-    color: var(--accent-primary);
-    font-weight: 700;
-    margin-bottom: 2px;
-  }
-
-  .stats span {
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-
-  .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px dashed var(--border-color);
-    font-size: 14px;
-  }
-
-  .row:last-child {
-    border-bottom: none;
-  }
-
-  .row .m {
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-
-  /* Entry Item */
-  .ent {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .ent:last-child {
-    border-bottom: none;
-  }
-
-  .ent .t {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-
-  .ent .x {
-    background: none;
-    border: 1px solid #e5b8b8;
-    color: #c04040;
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .ent .d {
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-
-  .empty {
-    text-align: center;
-    padding: 24px 0;
-    color: var(--text-muted);
-    font-size: 14px;
-  }
-
-  /* Toast */
-  #toast {
-    position: fixed;
-    bottom: 70px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--accent-primary);
-    color: #ffffff;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 13px;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 100;
-  }
-
-  #toast.on {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+:root{color-scheme:light;--bg:#faf7f0;--card:#fffefb;--soft:#f6f1e6;--fg:#3b352d;--mute:#a49b8b;--line:#ece5d5;--acc:#3b352d;--accfg:#fffefb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 "Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;display:flex;flex-direction:column}
+main{flex:1;overflow-y:auto;padding:26px 18px 28px;max-width:520px;width:100%;margin:0 auto}
+h1{font-size:22px;font-weight:700;margin:0 0 18px;letter-spacing:.03em}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:14px;overflow:hidden}
+.card.pad{padding:2px 16px 18px;margin-top:0}
+.card>.ch{font-size:13px;color:var(--mute);padding:10px 14px;border-bottom:1px solid var(--line);background:var(--soft)}
+.card .row,.card .ent{padding:12px 14px;border-bottom:1px solid var(--line)}
+.card .row:last-child,.card .ent:last-child{border-bottom:0}
+label,.lb{display:block;font-size:13px;color:var(--mute);margin:18px 0 7px}
+.lb2{font-size:13px;color:var(--mute);margin:26px 2px 0}
+input[type=text],input[type=date]{width:100%;min-height:46px;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 13px;outline:0;-webkit-appearance:none;appearance:none;text-align:left}
+input:focus,textarea:focus{border-color:var(--acc)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:15px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:7px 16px;cursor:pointer}
+.chip.on{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
+.sub{margin-top:10px;display:none}.sub.on{display:block}
+.cnt{font-size:13px;color:var(--mute);margin-top:8px}
+.btn{width:100%;font:inherit;font-weight:600;color:var(--accfg);background:var(--acc);border:1px solid var(--acc);border-radius:12px;padding:13px;margin-top:22px;cursor:pointer}
+.btn.ghost{background:var(--card);color:var(--fg);border-color:var(--line);margin:12px 0 0}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.row .m{color:var(--mute);font-size:14px}
+.ent .t{display:flex;justify-content:space-between;gap:12px}
+.ent .d{color:var(--mute);font-size:13px;margin-top:2px}
+.x{font:inherit;font-size:13px;color:var(--mute);background:none;border:0;padding:0;cursor:pointer}
+.fold summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);padding:12px 14px;background:var(--soft)}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary::after{content:"›";font-size:20px;line-height:1;transition:transform .2s}
+.fold[open] summary{border-bottom:1px solid var(--line)}
+.fold[open] summary::after{transform:rotate(90deg)}
+.cal{padding:10px 8px 12px}
+.cw,.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cw span{text-align:center;font-size:12px;color:var(--mute);padding:2px 0 6px}
+.cd{min-height:64px;border-radius:8px;background:var(--bg);padding:4px 2px;text-align:center;overflow:hidden}
+.cd b{display:block;font-size:12px;font-weight:600;color:var(--mute)}
+.cd i{display:block;font-style:normal;font-size:11px;line-height:1.3;color:var(--fg);word-break:break-all}
+.cd.zh{background:#dcebf8}.cd.ay{background:#dcf0dc}.cd.has{background:var(--soft)}
+.leg{display:flex;gap:12px}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.tb{width:100%;border-collapse:collapse;font-size:15px}
+.tb th{font-size:13px;font-weight:400;color:var(--mute);background:var(--soft);text-align:left;padding:10px 14px}
+.tb td{padding:12px 14px;border-top:1px solid var(--line)}
+.tb th:not(:first-child),.tb td:not(:first-child){text-align:right}
+.empty{color:var(--mute);font-size:14px;padding:18px 14px;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(3,1fr)}
+.stats div{padding:14px 12px;border-right:1px solid var(--line);font-size:13px;color:var(--mute)}
+.stats div:last-child{border-right:0}
+.stats b{display:block;font-size:26px;font-weight:700;color:var(--fg);line-height:1.25}
+.mnav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 4px}
+.arr{font:inherit;font-size:28px;line-height:1;color:var(--fg);background:none;border:0;padding:6px 16px;cursor:pointer}
+.mlab{font-weight:600}
+textarea{display:block;width:100%;font:inherit;font-size:14px;line-height:1.6;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;resize:none;outline:0}
+#out{display:none}
+.card.pad textarea{margin-top:4px}
+nav{display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--line);background:var(--card)}
+nav button{flex:1;font:inherit;font-size:14px;color:var(--mute);background:none;border:0;border-radius:12px;padding:10px 0;cursor:pointer}
+nav button.on{color:var(--fg);font-weight:700;background:var(--soft)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--acc);color:var(--accfg);padding:9px 18px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </style>
 </head>
 <body>
-
-<header>工作日誌與記帳</header>
-
 <main>
-  <!-- Section 0: 記帳 -->
-  <section id="sec0" class="on">
-    <div class="card">
-      <div class="fgroup">
-        <div class="flabel">日期</div>
-        <input type="date" id="date">
-      </div>
-
-      <div class="fgroup">
-        <div class="flabel">工作地點</div>
-        <input type="text" id="loc" placeholder="請輸入工作地點">
-      </div>
-
-      <div class="fgroup">
-        <div class="flabel">承接</div>
-        <div class="chips" id="asg"></div>
-        <div id="asgSub" class="sub-input">
-          <input type="text" id="asgIn" placeholder="輸入承接姓名">
-        </div>
-      </div>
-
-      <div class="fgroup">
-        <div class="flabel">人員 <span class="cnt" id="cnt">共 1 人</span></div>
-        <div class="chips" id="wk"></div>
-        <div id="wkSub" class="sub-input">
-          <input type="text" id="wkIn" placeholder="輸入其他人員（逗號分隔）">
-        </div>
-      </div>
-
-      <div class="fgroup">
-        <div class="flabel">金額</div>
-        <div class="chips" id="am"></div>
-        <div id="amSub" class="sub-input">
-          <input type="text" id="amIn" placeholder="輸入自訂金額">
-        </div>
-        <div class="hint" id="amHint"></div>
-      </div>
-
-      <button id="save" class="btn primary">儲存紀錄</button>
-    </div>
-
-    <div class="card">
-      <div class="ch">最近紀錄</div>
-      <div id="recent"></div>
-    </div>
-  </section>
-
-  <!-- Section 1: 總結 -->
-  <section id="sec1">
-    <div class="card" style="padding: 12px 18px;">
-      <div class="ch" style="margin-bottom: 0;">
-        <span>查詢</span>
-        <div class="mctrl">
-          <button id="prev">‹</button>
-          <span id="mlab" style="font-size: 14px;"></span>
-          <button id="next">›</button>
-        </div>
-      </div>
-    </div>
-    <div id="sum"></div>
-  </section>
-
-  <!-- Section 2: 輸出 -->
-  <section id="sec2">
-    <div class="card" style="padding: 12px 18px;">
-      <div class="ch" style="margin-bottom: 0;">
-        <span>查詢</span>
-        <div class="mctrl">
-          <button id="prev1">‹</button>
-          <span id="mlab1" style="font-size: 14px;"></span>
-          <button id="next1">›</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="ch">全月總覽文本</div>
-      <textarea id="out" rows="8" readonly style="font-family: monospace; font-size: 13px; line-height: 1.5; margin-bottom: 12px;"></textarea>
-      <div style="display: flex; gap: 8px;">
-        <button id="cp" class="btn primary">複製全文</button>
-        <button id="dl" class="btn ghost">下載紀錄</button>
-      </div>
-    </div>
-
-    <div id="outs"></div>
-  </section>
-
-  <!-- Section 3: 設定 / 備份 -->
-  <section id="sec3">
-    <div class="card">
-      <div class="ch">資料備份</div>
-      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">匯出包含目前所有工作紀錄的 JSON 備份檔。</p>
-      <div style="display: flex; gap: 8px;">
-        <button id="bk" class="btn primary">下載備份檔</button>
-        <button id="bkc" class="btn ghost">複製備份 JSON</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="ch">資料還原</div>
-      <div class="fgroup">
-        <div class="flabel">還原模式</div>
-        <div class="chips" id="rmode"></div>
-      </div>
-      <div class="fgroup">
-        <button id="pick" class="btn ghost" style="margin-bottom: 8px;">選擇 JSON 檔案</button>
-        <input type="file" id="fl" accept=".json" style="display: none;">
-        <textarea id="paste" rows="4" placeholder="或直接貼上備份 JSON 內容..."></textarea>
-      </div>
-      <div id="rinfo" class="hint" style="margin-bottom: 12px; color: var(--accent-primary); font-weight: 500;"></div>
-      <button id="rs" class="btn primary">確認還原</button>
-    </div>
-
-    <div class="card" style="text-align: center; color: var(--text-muted); font-size: 13px;">
-      <span id="setCnt">目前共 0 筆紀錄</span>
-    </div>
-  </section>
+<section id="p0" class="on">
+  <h1>藍-新增工作紀錄</h1>
+  <div class="card pad">
+    <label for="date">日期</label>
+    <input type="date" id="date">
+    <label for="loc">工作地點</label>
+    <input type="text" id="loc" placeholder="輸入地點" autocomplete="off">
+    <div class="lb">工作承接</div>
+    <div class="chips" id="asg"></div>
+    <div class="sub" id="asgSub"><input type="text" id="asgIn" placeholder="輸入承接姓名" autocomplete="off"></div>
+    <div class="lb">人員</div>
+    <div class="chips" id="wk"></div>
+    <div class="sub" id="wkSub"><input type="text" id="wkIn" placeholder="輸入姓名，多人以逗號分隔" autocomplete="off"></div>
+    <div class="cnt" id="cnt"></div>
+    <div class="lb">金額</div>
+    <div class="chips" id="am"></div>
+    <div class="sub" id="amSub"><input type="text" id="amIn" inputmode="numeric" placeholder="輸入金額" autocomplete="off"></div>
+    <div class="cnt" id="amHint"></div>
+    <button class="btn" id="save">儲存</button>
+  </div>
+  <div class="lb2">最近紀錄</div>
+  <div id="recent"></div>
+</section>
+<section id="p1">
+  <h1>查詢</h1>
+  <div class="mnav"><button type="button" class="arr" id="prev1" aria-label="上個月">‹</button><span class="mlab" id="mlab1"></span><button type="button" class="arr" id="next1" aria-label="下個月">›</button></div>
+  <div id="sum"></div>
+</section>
+<section id="p2">
+  <h1>匯出文字檔</h1>
+  <div class="mnav"><button type="button" class="arr" id="prev" aria-label="上個月">‹</button><span class="mlab" id="mlab"></span><button type="button" class="arr" id="next" aria-label="下個月">›</button></div>
+  <div id="outs"></div>
+  <textarea id="out" readonly></textarea>
+  <button class="btn" id="dl">下載全部 .txt</button>
+  <button class="btn ghost" id="cp">複製全部</button>
+</section>
+<section id="p3">
+  <h1>設定</h1>
+  <div class="card"><div class="ch">備份</div><div style="padding:14px">
+    <div class="cnt" style="margin:0" id="setCnt"></div>
+    <button class="btn" id="bk" style="margin-top:12px">下載 JSON 備份</button>
+    <button class="btn ghost" id="bkc">複製 JSON 文字</button>
+  </div></div>
+  <div class="card"><div class="ch">還原</div><div style="padding:14px">
+    <div class="chips" id="rmode"></div>
+    <button class="btn ghost" id="pick" style="margin-top:14px">選擇備份檔案</button>
+    <input type="file" id="fl" accept=".json,application/json,text/plain" hidden>
+    <div class="lb">或貼上 JSON 文字</div>
+    <textarea id="paste" rows="5" placeholder="貼上備份內容"></textarea>
+    <div class="cnt" id="rinfo"></div>
+    <button class="btn" id="rs">還原</button>
+  </div></div>
+</section>
 </main>
-
-<nav id="nav">
-  <button data-p="0" class="on">記帳</button>
-  <button data-p="1">總結</button>
-  <button data-p="2">輸出</button>
-  <button data-p="3">設定</button>
-</nav>
-
-<div id="toast"></div>
-
+<nav id="nav"><button class="on" data-p="0">工作紀錄</button><button data-p="1">查詢</button><button data-p="2">匯出</button><button data-p="3">設定</button></nav>
+<div class="toast" id="toast"></div>
 <script>
-const KEY = "worklog:v1";
-let data = [];
-try { data = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch(e) { data = []; }
+// App icon for Safari "Add to Home Screen"
+(function(){try{
+const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d");
+const rr=(a,b,w,h,r)=>{x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()};
+x.fillStyle="#fbf1d8";x.fillRect(0,0,512,512);
+x.lineCap=x.lineJoin="round";x.strokeStyle="#5a3a33";x.lineWidth=13;
+x.save();x.translate(240,272);x.rotate(-.22);
+rr(-120,-130,240,280,18);x.fillStyle="#fffdf6";x.fill();x.stroke();
+for(let i=0;i<5;i++){const y=-60+i*45;x.beginPath();x.moveTo(-70,y);x.lineTo(i==4?0:60,y);x.stroke()}
+[-50,25].forEach(cx=>{x.beginPath();x.ellipse(cx,-130,20,30,0,0,7);x.fillStyle="#d8d8dc";x.fill();x.stroke()});
+x.restore();
+const T=[332,361],E=[436,52],L=Math.hypot(E[0]-T[0],E[1]-T[1]),ux=(E[0]-T[0])/L,uy=(E[1]-T[1])/L,nx=-uy,ny=ux,w=30,k=75;
+const P=(a,b)=>[T[0]+ux*a+nx*b,T[1]+uy*a+ny*b];
+x.beginPath();[P(0,0),P(k,w),P(L,w),P(L,-w),P(k,-w)].forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]));x.closePath();x.fillStyle="#f7dd3c";x.fill();x.lineWidth=13;x.stroke();
+x.beginPath();x.moveTo(P(k,w)[0],P(k,w)[1]);x.lineTo(P(k,-w)[0],P(k,-w)[1]);x.lineWidth=10;x.stroke();
+const u=c.toDataURL("image/png");
+[["apple-touch-icon",u],["icon",u]].forEach(a=>{const l=document.createElement("link");l.rel=a[0];l.href=a[1];document.head.appendChild(l)});
+}catch(e){}})();
 
-const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){} };
+const KEY="worklog:v1";
+let data=[];
+try{data=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){data=[]}
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+data.forEach(e=>{if(e.who==="自己")e.who="藍";e.ws=(e.ws||[]).map(k=>k==="自己"?"藍":k)});persist();
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n||0).toLocaleString("en-US");
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+let month=today().slice(0,7);
+let asg="藍",asgCustom=false,wk=new Set(["藍"]),wkCustom=false,amt="auto",amtCustom=false;
+const ASG=["藍","志豪","阿意"],WK=["藍","峰"],AMT=[3000,1500],RATE={"藍":3000,"峰":1500};
+const names=()=>[...wk].concat(wkCustom?$("wkIn").value.split(/[,，、\s]+/).filter(Boolean):[]);
+const autoAmt=()=>{if(asgCustom||!(asg==="志豪"||asg==="阿意"))return null;return [...new Set(names())].reduce((n,k)=>n+(RATE[k]||0),0)};
+const sum=l=>l.reduce((n,e)=>n+(e.amt||0),0);
+const dc=l=>new Set(l.map(e=>e.date)).size;
 
-data.forEach(e => {
-  if (e.who === "自己") e.who = "藍";
-  e.ws = (e.ws || []).map(k => k === "自己" ? "藍" : k);
-});
-persist();
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),1600)}
+function chip(box,label,on,fn){const b=document.createElement("button");b.type="button";b.className="chip"+(on?" on":"");b.textContent=label;b.onclick=fn;box.appendChild(b)}
+function drawChips(){
+  const a=$("asg");a.innerHTML="";
+  ASG.forEach(n=>chip(a,n,!asgCustom&&asg===n,()=>{asg=n;asgCustom=false;drawChips()}));
+  chip(a,"自訂",asgCustom,()=>{asgCustom=true;drawChips();$("asgIn").focus()});
+  $("asgSub").classList.toggle("on",asgCustom);
+  const w=$("wk");w.innerHTML="";
+  WK.forEach(n=>chip(w,n,wk.has(n),()=>{wk.has(n)?wk.delete(n):wk.add(n);drawChips()}));
+  chip(w,"自訂",wkCustom,()=>{wkCustom=!wkCustom;drawChips();if(wkCustom)$("wkIn").focus()});
+  $("wkSub").classList.toggle("on",wkCustom);
+  $("cnt").textContent="共 "+new Set(names()).size+" 人";
+  const m=$("am");m.innerHTML="";
+  chip(m,"自動",!amtCustom&&amt==="auto",()=>{amt="auto";amtCustom=false;drawChips()});
+  AMT.forEach(n=>chip(m,fmt(n),!amtCustom&&amt===n,()=>{amt=n;amtCustom=false;drawChips()}));
+  chip(m,"自訂",amtCustom,()=>{amtCustom=true;drawChips();$("amIn").focus()});
+  $("amSub").classList.toggle("on",amtCustom);
+  const ah=$("amHint");
+  if(!amtCustom&&amt==="auto"){const v=autoAmt();ah.textContent=v===null?"自動計算僅適用志豪、阿意承接，其他請改選金額":"藍 3,000、峰 1,500，本筆合計 "+fmt(v)}else ah.textContent="";
+}
+$("wkIn").oninput=()=>{$("cnt").textContent="共 "+new Set(names()).size+" 人"};
 
-const $ = id => document.getElementById(id);
-const fmt = n => Number(n || 0).toLocaleString("en-US");
-
-const today = () => {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+$("save").onclick=()=>{
+  const loc=$("loc").value.trim(),date=$("date").value;
+  const who=asgCustom?$("asgIn").value.trim():asg;
+  const ws=[...new Set(names())];
+  if(!date)return toast("請選擇日期");
+  if(!loc)return toast("請輸入工作地點");
+  if(!who)return toast("請輸入承接姓名");
+  if(!ws.length)return toast("請至少選擇一位人員");
+  const raw=$("amIn").value.replace(/[,，\s]/g,"");
+  const money=amtCustom?Number(raw):(amt==="auto"?autoAmt():amt);
+  if(amtCustom&&(!raw||!(money>=0)))return toast("請輸入正確金額");
+  if(money===null)return toast("自動金額僅適用志豪、阿意承接，請改選金額");
+  data.push({id:Date.now(),date,loc,who,ws,amt:money});persist();
+  $("loc").value="";toast("已儲存");renderAll();
 };
 
-let month = today().slice(0, 7);
-let asg = "藍", asgCustom = false;
-let wk = new Set(["藍"]), wkCustom = false;
-let amt = "auto", amtCustom = false;
-
-const ASG = ["藍", "志豪", "阿意"];
-const WK = ["藍", "峰"];
-const AMT = ;
-const RATE = { "藍": 3000, "峰": 1500 };
-
-const names = () => [...wk].concat(wkCustom ? $("wkIn").value.split(/[,，、\s]+/).filter(Boolean) : []);
-
-const autoAmt = () => {
-  if (asgCustom || !(asg === "志豪" || asg === "阿意")) return null;
-  return [...new Set(names())].reduce((n, k) => n + (RATE[k] || 0), 0);
-};
-
-const sum = l => l.reduce((n, e) => n + (e.amt || 0), 0);
-const dc = l => new Set(l.map(e => e.date)).size;
-
-function toast(t) {
-  const e = $("toast");
-  e.textContent = t;
-  e.classList.add("on");
-  setTimeout(() => e.classList.remove("on"), 1600);
+function del(id,btn){
+  if(btn.dataset.s!=="1"){btn.dataset.s="1";btn.textContent="確定刪除";setTimeout(()=>{btn.dataset.s="";btn.textContent="刪除"},2500);return}
+  data=data.filter(e=>e.id!==id);persist();renderAll();
 }
-
-function chip(box, label, on, fn) {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "chip" + (on ? " on" : "");
-  b.textContent = label;
-  b.onclick = fn;
-  box.appendChild(b);
+function entryEl(e,canDel){
+  const d=document.createElement("div");d.className="ent";
+  const t=document.createElement("div");t.className="t";
+  const l=document.createElement("span");l.textContent=e.date.slice(5).replace("-","/")+"　"+e.loc;t.appendChild(l);
+  if(canDel){const x=document.createElement("button");x.className="x";x.textContent="刪除";x.onclick=()=>del(e.id,x);t.appendChild(x)}
+  const s=document.createElement("div");s.className="d";s.textContent="承接 "+e.who+"　｜　"+e.ws.join("、")+"（"+e.ws.length+" 人）　｜　$"+fmt(e.amt);
+  d.append(t,s);return d;
 }
+const inMonth=m=>data.filter(e=>e.date.startsWith(m)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.id-b.id);
+function card(t){const c=document.createElement("div");c.className="card";const h=document.createElement("div");h.className="ch";h.textContent=t;c.appendChild(h);return c}
+function rowEl(a,b){const r=document.createElement("div");r.className="row";const x=document.createElement("span");x.textContent=a;const y=document.createElement("span");y.className="m";y.textContent=b;r.append(x,y);return r}
 
-function drawChips() {
-  const a = $("asg"); a.innerHTML = "";
-  ASG.forEach(n => chip(a, n, !asgCustom && asg === n, () => { asg = n; asgCustom = false; drawChips(); }));
-  chip(a, "自訂", asgCustom, () => { asgCustom = true; drawChips(); $("asgIn").focus(); });
-  $("asgSub").classList.toggle("on", asgCustom);
-
-  const w = $("wk"); w.innerHTML = "";
-  WK.forEach(n => chip(w, n, wk.has(n), () => { wk.has(n) ? wk.delete(n) : wk.add(n); drawChips(); }));
-  chip(w, "自訂", wkCustom, () => { wkCustom = !wkCustom; drawChips(); if (wkCustom) $("wkIn").focus(); });
-  $("wkSub").classList.toggle("on", wkCustom);
-  $("cnt").textContent = "共 " + new Set(names()).size + " 人";
-
-  const m = $("am"); m.innerHTML = "";
-  chip(m, "自動", !amtCustom && amt === "auto", () => { amt = "auto"; amtCustom = false; drawChips(); });
-  AMT.forEach(n => chip(m, fmt(n), !amtCustom && amt === n, () => { amt = n; amtCustom = false; drawChips(); }));
-  chip(m, "自訂", amtCustom, () => { amtCustom = true; drawChips(); $("amIn").focus(); });
-  $("amSub").classList.toggle("on", amtCustom);
-
-  const ah = $("amHint");
-  if (!amtCustom && amt === "auto") {
-    const v = autoAmt();
-    ah.textContent = (v === null) ? "自動計算僅適用志豪、阿意承接，其他請改選金額" : "藍 3,000、峰 1,500，本筆合計 " + fmt(v);
-  } else {
-    ah.textContent = "";
-  }
+function renderRecent(){
+  const r=$("recent");r.innerHTML="";
+  const c=document.createElement("div");c.className="card";
+  const l=[...data].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.id-a.id).slice(0,8);
+  if(!l.length){c.innerHTML='<div class="empty">還沒有紀錄，填完上方欄位後儲存。</div>'}
+  else l.forEach(e=>c.appendChild(entryEl(e,true)));
+  r.appendChild(c);
 }
-
-$("wkIn").oninput = () => { $("cnt").textContent = "共 " + new Set(names()).size + " 人"; };
-
-$("save").onclick = () => {
-  const loc = $("loc").value.trim(), date = $("date").value;
-  const who = asgCustom ? $("asgIn").value.trim() : asg;
-  const ws = [...new Set(names())];
-  if (!date) return toast("請選擇日期");
-  if (!loc) return toast("請輸入工作地點");
-  if (!who) return toast("請輸入承接姓名");
-  if (!ws.length) return toast("請至少選擇一位人員");
-
-  const raw = $("amIn").value.replace(/[,，\s]/g, "");
-  const money = amtCustom ? Number(raw) : (amt === "auto" ? autoAmt() : amt);
-  if (amtCustom && (!raw || !(money >= 0))) return toast("請輸入正確金額");
-  if (money === null) return toast("自動金額僅適用志豪、阿意承接，請改選金額");
-
-  data.push({ id: Date.now(), date, loc, who, ws, amt: money });
-  persist();
-  $("loc").value = "";
-  toast("已儲存");
-  renderAll();
-};
-
-function del(id, btn) {
-  if (btn.dataset.s !== "1") {
-    btn.dataset.s = "1";
-    btn.textContent = "確定刪除";
-    setTimeout(() => { btn.dataset.s = ""; btn.textContent = "刪除"; }, 2500);
-    return;
-  }
-  data = data.filter(e => e.id !== id);
-  persist();
-  renderAll();
-}
-
-function entryEl(e, canDel) {
-  const d = document.createElement("div"); d.className = "ent";
-  const t = document.createElement("div"); t.className = "t";
-  const l = document.createElement("span");
-  l.textContent = e.date.slice(5).replace("-", "/") + "　" + e.loc;
-  t.appendChild(l);
-  if (canDel) {
-    const x = document.createElement("button");
-    x.className = "x";
-    x.textContent = "刪除";
-    x.onclick = () => del(e.id, x);
-    t.appendChild(x);
-  }
-  const s = document.createElement("div"); s.className = "d";
-  s.textContent = "承接 " + e.who + "　｜　" + e.ws.join("、") + "（" + e.ws.length + " 人）　｜　$" + fmt(e.amt);
-  d.append(t, s);
-  return d;
-}
-
-const inMonth = m => data.filter(e => e.date.startsWith(m)).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id);
-
-function card(t) {
-  const c = document.createElement("div"); c.className = "card";
-  const h = document.createElement("div"); h.className = "ch"; h.textContent = t;
-  c.appendChild(h);
-  return c;
-}
-
-function rowEl(a, b) {
-  const r = document.createElement("div"); r.className = "row";
-  const x = document.createElement("span"); x.textContent = a;
-  const y = document.createElement("span"); y.className = "m"; y.textContent = b;
-  r.append(x, y);
-  return r;
-}
-
-function renderRecent() {
-  const r = $("recent"); r.innerHTML = "";
-  const l = [...data].sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id).slice(0, 8);
-  if (!l.length) {
-    r.innerHTML = '<div class="empty">還沒有紀錄，填完上方欄位後儲存。</div>';
-  } else {
-    l.forEach(e => r.appendChild(entryEl(e, true)));
-  }
-}
-
-// 計算月度人員總金額
-function getWorkerTotalAmt(workerName, monthList) {
-  const kList = monthList.filter(e => e.ws.includes(workerName));
-  if (RATE[workerName] !== undefined) {
-    return kList.length * RATE[workerName];
-  }
-  return kList.reduce((acc, e) => {
-    if (e.ws.length === 1) return acc + (e.amt || 0);
-    const knownRatesSum = e.ws.reduce((s, w) => s + (RATE[w] || 0), 0);
-    const unratedCount = e.ws.filter(w => RATE[w] === undefined).length;
-    if (unratedCount > 0 && e.amt > knownRatesSum) {
-      return acc + Math.round((e.amt - knownRatesSum) / unratedCount);
+function calEl(list){
+  const [y,m]=month.split("-").map(Number);
+  const c=card("月曆");
+  c.firstChild.style.cssText="display:flex;justify-content:space-between";
+  const lg=document.createElement("span");lg.className="leg";
+  lg.innerHTML='<span><i class="dot" style="background:#dcebf8"></i>志豪</span><span><i class="dot" style="background:#dcf0dc"></i>阿意</span>';
+  c.firstChild.appendChild(lg);
+  const w=document.createElement("div");w.className="cal";
+  const hd=document.createElement("div");hd.className="cw";
+  "日一二三四五六".split("").forEach(t=>{const s=document.createElement("span");s.textContent=t;hd.appendChild(s)});
+  const g=document.createElement("div");g.className="cg";
+  const first=new Date(y,m-1,1).getDay(),n=new Date(y,m,0).getDate();
+  for(let i=0;i<first;i++)g.appendChild(document.createElement("div"));
+  for(let d=1;d<=n;d++){
+    const ds=month+"-"+String(d).padStart(2,"0");
+    const es=list.filter(e=>e.date===ds);
+    const cell=document.createElement("div");cell.className="cd";
+    const b=document.createElement("b");b.textContent=d;cell.appendChild(b);
+    if(es.length){
+      const zh=es.some(e=>e.who==="志豪"),ay=es.some(e=>e.who==="阿意");
+      if(zh&&ay)cell.style.background="linear-gradient(135deg,#dcebf8 50%,#dcf0dc 50%)";
+      else if(zh)cell.classList.add("zh");
+      else if(ay)cell.classList.add("ay");
+      else cell.classList.add("has");
+      const t=document.createElement("i");t.textContent=[...new Set(es.flatMap(e=>e.ws))].join("、");cell.appendChild(t);
     }
-    return acc + Math.round((e.amt || 0) / e.ws.length);
-  }, 0);
-}
-
-function renderSum() {
-  const box = $("sum"); box.innerHTML = "";
-  const list = inMonth(month);
-  if (!list.length) {
-    box.innerHTML = '<div class="card"><div class="empty">這個月沒有紀錄。</div></div>';
-    return;
+    g.appendChild(cell);
   }
-
-  const st = document.createElement("div"); st.className = "card stats";
-  st.innerHTML = "<div><b>" + dc(list) + "</b><span>工作天數</span></div>" +
-                 "<div><b>" + list.length + "</b><span>筆數</span></div>" +
-                 "<div><b>$" + fmt(sum(list)) + "</b><span>總金額</span></div>";
-  box.appendChild(st);
-
-  // 承接
-  const fixed = ["藍", "志豪", "阿意"];
-  const ex = [...new Set(list.map(e => e.who))].filter(k => !fixed.includes(k));
-  const c1 = card("承接");
-  fixed.concat(ex).forEach(k => {
-    const l = list.filter(e => e.who === k);
-    c1.appendChild(rowEl(k, dc(l) + " 天　$" + fmt(sum(l))));
-  });
+  w.append(hd,g);c.appendChild(w);return c;
+}
+function renderSum(){
+  const box=$("sum");box.innerHTML="";const list=inMonth(month);
+  if(!list.length){box.innerHTML='<div class="card"><div class="empty">這個月沒有紀錄。</div></div>';return}
+  box.appendChild(calEl(list));
+  const pf=["藍","峰"],px=[...new Set(list.flatMap(e=>e.ws))].filter(k=>!pf.includes(k));
+  const c2=document.createElement("div");c2.className="card";
+  const tb=document.createElement("table");tb.className="tb";
+  tb.innerHTML="<thead><tr><th>人員</th><th>工作天數</th><th>金額總計</th></tr></thead>";
+  const tbd=document.createElement("tbody");
+  pf.concat(px).forEach(k=>{const l=list.filter(e=>e.ws.includes(k));const r=RATE[k];const tr=document.createElement("tr");
+    [k,dc(l)+" 天",r?"$"+fmt(l.length*r):"—"].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});tbd.appendChild(tr)});
+  tb.appendChild(tbd);c2.appendChild(tb);box.appendChild(c2);
+  const fixed=["藍","志豪","阿意"];
+  const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
+  const c1=card("承接");
+  fixed.concat(ex).forEach(k=>{const l=list.filter(e=>e.who===k);c1.appendChild(rowEl(k,dc(l)+" 天　$"+fmt(sum(l))))});
   box.appendChild(c1);
-
-  // 人員（已增加總計金額顯示，例如：2 天　$6,000）
-  const pf = ["藍", "峰"];
-  const px = [...new Set(list.flatMap(e => e.ws))].filter(k => !pf.includes(k));
-  const c2 = card("人員");
-  pf.concat(px).forEach(k => {
-    const kList = list.filter(e => e.ws.includes(k));
-    const days = dc(kList);
-    const totalAmt = getWorkerTotalAmt(k, list);
-    c2.appendChild(rowEl(k, days + " 天　$" + fmt(totalAmt)));
-  });
-  box.appendChild(c2);
-
-  // 明細
-  const c3 = card("明細（" + list.length + " 筆）");
-  list.forEach(e => c3.appendChild(entryEl(e, false)));
+  const c3=document.createElement("details");c3.className="card fold";
+  const sm=document.createElement("summary");sm.textContent="明細（"+list.length+" 筆）";c3.appendChild(sm);
+  list.forEach(e=>c3.appendChild(entryEl(e,false)));
   box.appendChild(c3);
 }
-
-const line = e => e.date.slice(5).replace("-", "/") + " | " + e.loc + " | " + e.ws.join("、") + " | $" + fmt(e.amt);
-
-function buildText(m) {
-  const list = inMonth(m), [y, mm] = m.split("-");
-  let t = y + " 年 " + Number(mm) + " 月 工作紀錄\n";
-  if (!list.length) return t + "\n（本月沒有紀錄）\n";
-  const fixed = ["藍", "志豪", "阿意"];
-  const ex = [...new Set(list.map(e => e.who))].filter(k => !fixed.includes(k));
-  fixed.concat(ex).forEach(k => {
-    const l = list.filter(e => e.who === k);
-    t += "\n【" + k + "】\n" + (l.length ? l.map(line).join("\n") + "\n" : "（無）\n") + "總計：" + l.length + " 筆 | $" + fmt(sum(l)) + " 元\n";
+const line=e=>e.date.slice(5).replace("-","/")+" | "+e.loc+" | "+e.ws.join("、")+" | "+fmt(e.amt);
+function buildText(m){
+  const list=inMonth(m),[y,mm]=m.split("-");
+  let t=y+" 年 "+Number(mm)+" 月 工作紀錄\n";
+  if(!list.length)return t+"\n（本月沒有紀錄）\n";
+  const fixed=["藍","志豪","阿意"];
+  const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
+  fixed.concat(ex).forEach(k=>{
+    const l=list.filter(e=>e.who===k);
+    t+="\n【"+k+"】\n"+(l.length?l.map(line).join("\n")+"\n":"（無）\n")+"總計："+l.length+" 筆 | "+fmt(sum(l))+" 元\n";
   });
-  return t + "\n全部總計：" + list.length + " 筆 | $" + fmt(sum(list)) + " 元\n";
+  return t+"\n全部總計："+list.length+" 筆 | "+fmt(sum(list))+" 元\n";
 }
-
-async function copyText(t, ta) {
-  try {
-    await navigator.clipboard.writeText(t);
-    toast("已複製");
-  } catch(e) {
-    if (ta && ta.select) ta.select();
-    try {
-      document.execCommand("copy");
-      toast("已複製");
-    } catch(_) {
-      toast("請手動複製");
-    }
-  }
-}
-
-function renderOut() {
-  $("out").value = buildText(month);
-  const box = $("outs"); box.innerHTML = "";
-  const list = inMonth(month), [y, mm] = month.split("-");
-  const fixed = ["藍", "志豪", "阿意"];
-  const ex = [...new Set(list.map(e => e.who))].filter(k => !fixed.includes(k));
-  fixed.concat(ex).forEach(k => {
-    const l = list.filter(e => e.who === k);
-    const txt = y + " 年 " + Number(mm) + " 月 " + k + " 工作紀錄\n" + (l.length ? l.map(line).join("\n") : "（無）") + "\n總計：" + l.length + " 筆 | $" + fmt(sum(l)) + " 元\n";
-    const c = card(k);
-    const w = document.createElement("div");
-    w.style.padding = "12px";
-    const ta = document.createElement("textarea");
-    ta.readOnly = true; ta.value = txt; ta.rows = Math.min(l.length + 3, 10);
-    const b = document.createElement("button");
-    b.className = "btn ghost"; b.textContent = "複製 " + k;
-    b.onclick = () => copyText(txt, ta);
-    w.append(ta, b);
-    c.appendChild(w);
-    box.appendChild(c);
+async function copyText(t,ta){try{await navigator.clipboard.writeText(t);toast("已複製")}catch(e){ta.select();try{document.execCommand("copy");toast("已複製")}catch(_){toast("請長按文字手動複製")}}}
+function renderOut(){
+  $("out").value=buildText(month);
+  const box=$("outs");box.innerHTML="";
+  const list=inMonth(month),[y,mm]=month.split("-");
+  const fixed=["藍","志豪","阿意"];
+  const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
+  fixed.concat(ex).forEach(k=>{
+    const l=list.filter(e=>e.who===k);
+    const txt=y+" 年 "+Number(mm)+" 月 "+k+" 工作紀錄\n"+(l.length?l.map(line).join("\n"):"（無）")+"\n總計："+l.length+" 筆 | "+fmt(sum(l))+" 元\n";
+    const c=card(k);const w=document.createElement("div");w.style.padding="12px";
+    const ta=document.createElement("textarea");ta.readOnly=true;ta.value=txt;ta.rows=Math.min(l.length+3,10);
+    const b=document.createElement("button");b.className="btn ghost";b.textContent="複製 "+k;b.onclick=()=>copyText(txt,ta);
+    w.append(ta,b);c.appendChild(w);box.appendChild(c);
   });
 }
+function renderAll(){renderRecent();renderSum();renderOut();$("setCnt").textContent="目前共 "+data.length+" 筆紀錄"}
 
-function renderAll() {
-  renderRecent();
-  renderSum();
-  renderOut();
-  $("setCnt").textContent = "目前共 " + data.length + " 筆紀錄";
-}
+function setMonth(m){month=m;const [y,mm]=m.split("-");$("mlab").textContent=$("mlab1").textContent=y+" 年 "+Number(mm)+" 月";renderSum();renderOut()}
+function shift(d){const [y,m]=month.split("-").map(Number);const t=new Date(y,m-1+d,1);setMonth(t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0"))}
+$("prev").onclick=$("prev1").onclick=()=>shift(-1);
+$("next").onclick=$("next1").onclick=()=>shift(1);
 
-function setMonth(m) {
-  month = m;
-  const [y, mm] = m.split("-");
-  $("mlab").textContent = $("mlab1").textContent = y + " 年 " + Number(mm) + " 月";
-  renderSum();
-  renderOut();
-}
-
-function shift(d) {
-  const [y, m] = month.split("-").map(Number);
-  const t = new Date(y, m - 1 + d, 1);
-  setMonth(t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0"));
-}
-
-$("prev").onclick = $("prev1").onclick = () => shift(-1);
-$("next").onclick = $("next1").onclick = () => shift(1);
-
-$("cp").onclick = () => copyText($("out").value, $("out"));
-
-$("dl").onclick = async () => {
-  try {
-    const d = window.claude && await claude.use("downloads");
-    if (!d) throw 0;
-    await d.save({ filename: "工作紀錄_" + month + ".txt", data: $("out").value });
-    toast("已下載");
-  } catch(e) {
-    try {
-      await navigator.clipboard.writeText($("out").value);
-      toast("無法下載，已改為複製文字");
-    } catch(_) {
-      toast("無法下載，請用複製");
-    }
+$("cp").onclick=()=>copyText($("out").value,$("out"));
+$("dl").onclick=async()=>{
+  try{
+    const d=window.claude&&await claude.use("downloads");
+    if(!d)throw 0;
+    await d.save({filename:"工作紀錄_"+month+".txt",data:$("out").value});toast("已下載");
+  }catch(e){
+    try{await navigator.clipboard.writeText($("out").value);toast("無法下載，已改為複製文字")}catch(_){toast("無法下載，請用複製")}
   }
 };
-
-$("nav").onclick = e => {
-  const b = e.target.closest("button");
-  if (!b) return;
-  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
-  document.querySelectorAll("section").forEach((s, i) => s.classList.toggle("on", i === +b.dataset.p));
-  document.querySelector("main").scrollTop = 0;
+$("nav").onclick=e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("section").forEach((s,i)=>s.classList.toggle("on",i===+b.dataset.p));
+  document.querySelector("main").scrollTop=0;
 };
-
-let rm = "merge", pending = null;
-
-function drawRm() {
-  const b = $("rmode"); b.innerHTML = "";
-  chip(b, "合併（保留現有）", rm === "merge", () => { rm = "merge"; drawRm(); });
-  chip(b, "覆蓋（取代現有）", rm === "replace", () => { rm = "replace"; drawRm(); });
+let rm="merge",pending=null;
+function drawRm(){const b=$("rmode");b.innerHTML="";chip(b,"合併（保留現有）",rm==="merge",()=>{rm="merge";drawRm()});chip(b,"覆蓋（取代現有）",rm==="replace",()=>{rm="replace";drawRm()})}
+function parseBackup(txt){
+  let j;try{j=JSON.parse(txt)}catch(e){return null}
+  const arr=Array.isArray(j)?j:(j&&Array.isArray(j.records)?j.records:null);
+  if(!arr)return null;
+  return arr.filter(e=>e&&typeof e.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)&&typeof e.loc==="string"&&typeof e.who==="string"&&Array.isArray(e.ws)).map((e,i)=>({id:Number(e.id)||Date.now()+i,date:e.date,loc:e.loc,who:e.who,ws:e.ws.map(String),amt:Number(e.amt)||0}));
 }
-
-function parseBackup(txt) {
-  let j; try { j = JSON.parse(txt); } catch(e) { return null; }
-  const arr = Array.isArray(j) ? j : (j && Array.isArray(j.records) ? j.records : null);
-  if (!arr) return null;
-  return arr.filter(e => e && typeof e.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(e.date) && typeof e.loc === "string" && typeof e.who === "string" && Array.isArray(e.ws))
-            .map((e, i) => ({ id: Number(e.id) || Date.now() + i, date: e.date, loc: e.loc, who: e.who, ws: e.ws.map(String), amt: Number(e.amt) || 0 }));
-}
-
-function setPending(txt) {
-  pending = parseBackup(txt);
-  $("rinfo").textContent = (pending === null) ? "格式不正確，請確認是本程式的備份內容" :
-                           (pending.length ? "偵測到 " + pending.length + " 筆紀錄，按「還原」套用" : "備份內沒有可用的紀錄");
-}
-
-const backupText = () => JSON.stringify({ app: "worklog", version: 1, exported: new Date().toISOString(), records: data }, null, 2);
-
-$("bk").onclick = async () => {
-  try {
-    const d = window.claude && await claude.use("downloads");
-    if (!d) throw 0;
-    await d.save({ filename: "工作紀錄備份_" + today() + ".json", data: backupText() });
-    toast("已備份");
-  } catch(e) {
-    try {
-      await navigator.clipboard.writeText(backupText());
-      toast("無法下載，已改為複製 JSON");
-    } catch(_) {
-      toast("無法下載，請用複製 JSON");
-    }
-  }
+function setPending(txt){pending=parseBackup(txt);$("rinfo").textContent=pending===null?"格式不正確，請確認是本程式的備份內容":pending.length?"偵測到 "+pending.length+" 筆紀錄，按「還原」套用":"備份內沒有可用的紀錄"}
+const backupText=()=>JSON.stringify({app:"worklog",version:1,exported:new Date().toISOString(),records:data},null,2);
+$("bk").onclick=async()=>{
+  try{const d=window.claude&&await claude.use("downloads");if(!d)throw 0;await d.save({filename:"工作紀錄備份_"+today()+".json",data:backupText()});toast("已備份")}
+  catch(e){try{await navigator.clipboard.writeText(backupText());toast("無法下載，已改為複製 JSON")}catch(_){toast("無法下載，請用複製 JSON")}}
 };
-
-$("bkc").onclick = () => copyText(backupText(), { select() {} });
-
-$("pick").onclick = () => $("fl").click();
-$("fl").onchange = async e => {
-  const f = e.target.files; if (!f) return;
-  try {
-    const t = await f.text();
-    $("paste").value = t;
-    setPending(t);
-  } catch(_) {
-    toast("讀取檔案失敗，請改用貼上");
-  }
-  e.target.value = "";
+$("bkc").onclick=()=>copyText(backupText(),{select(){}});
+$("pick").onclick=()=>$("fl").click();
+$("fl").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const t=await f.text();$("paste").value=t;setPending(t)}catch(_){toast("讀取檔案失敗，請改用貼上")}e.target.value=""};
+$("paste").oninput=()=>{const v=$("paste").value.trim();if(v)setPending(v);else{pending=null;$("rinfo").textContent=""}};
+$("rs").onclick=()=>{
+  const b=$("rs");
+  if(!pending||!pending.length)return toast("請先選擇檔案或貼上內容");
+  if(rm==="replace"&&b.dataset.s!=="1"){b.dataset.s="1";b.textContent="再按一次，確認覆蓋";setTimeout(()=>{b.dataset.s="";b.textContent="還原"},3000);return}
+  b.dataset.s="";b.textContent="還原";
+  let n=pending.length;
+  if(rm==="replace")data=pending.slice();
+  else{const ids=new Set(data.map(e=>e.id));const add=pending.filter(e=>!ids.has(e.id));n=add.length;data=data.concat(add)}
+  persist();renderAll();pending=null;$("paste").value="";$("rinfo").textContent="";
+  toast("已還原 "+n+" 筆");
 };
-
-$("paste").oninput = () => {
-  const v = $("paste").value.trim();
-  if (v) setPending(v);
-  else { pending = null; $("rinfo").textContent = ""; }
-};
-
-$("rs").onclick = () => {
-  const b = $("rs");
-  if (!pending || !pending.length) return toast("請先選擇檔案或貼上內容");
-  if (rm === "replace" && b.dataset.s !== "1") {
-    b.dataset.s = "1";
-    b.textContent = "再按一次，確認覆蓋";
-    setTimeout(() => { b.dataset.s = ""; b.textContent = "還原"; }, 3000);
-    return;
-  }
-  b.dataset.s = "";
-  b.textContent = "還原";
-  let n = pending.length;
-  if (rm === "replace") data = pending.slice();
-  else {
-    const ids = new Set(data.map(e => e.id));
-    const add = pending.filter(e => !ids.has(e.id));
-    n = add.length;
-    data = data.concat(add);
-  }
-  persist();
-  renderAll();
-  pending = null;
-  $("paste").value = "";
-  $("rinfo").textContent = "";
-  toast("已還原 " + n + " 筆");
-};
-
-// 初始化
-$("date").value = today();
-drawChips();
-drawRm();
-setMonth(month);
-renderAll();
+$("date").value=today();drawChips();drawRm();setMonth(month);renderAll();
 </script>
 </body>
 </html>
