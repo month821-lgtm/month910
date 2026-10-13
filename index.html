@@ -41,6 +41,10 @@ input:focus,textarea:focus{border-color:var(--acc)}
 .ent .d{color:var(--mute);font-size:13px;margin-top:2px}
 .ent .nt{color:var(--fg);font-size:13px;margin-top:4px;opacity:.8}
 .ent .bs{display:flex;gap:16px}
+.ck{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--fg);margin:16px 0 0;cursor:pointer}
+.ck input{width:20px;height:20px;margin:0;accent-color:var(--acc)}
+.ent .d .ck{display:inline-flex;gap:4px;margin:0;font-size:inherit;color:inherit;vertical-align:middle}
+.ent .d .ck input{width:1em;height:1em}
 .x{font:inherit;font-size:13px;color:var(--mute);background:none;border:0;padding:0;cursor:pointer}
 .fold summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);padding:12px 14px;background:var(--soft)}
 .fold summary::-webkit-details-marker{display:none}
@@ -98,6 +102,7 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     <div class="chips" id="am"></div>
     <div class="sub" id="amSub"><input type="text" id="amIn" inputmode="numeric" placeholder="輸入金額" autocomplete="off"></div>
     <div class="cnt" id="amHint"></div>
+    <label class="ck"><input type="checkbox" id="paid">已結清款項</label>
     <label for="note">備注</label>
     <input type="text" id="note" placeholder="選填" autocomplete="off">
     <button class="btn" id="save">儲存</button>
@@ -215,9 +220,9 @@ function drawChips(){
 $("wkIn").oninput=()=>{$("cnt").textContent="共 "+new Set(names()).size+" 人";$("amHint").textContent=amHintText()};
 $("amIn").oninput=()=>{$("amHint").textContent=amHintText()};
 let editId=null,foldOpen=false;
-function endEdit(){editId=null;$("save").textContent="儲存";$("cancel").style.display="none";$("loc").value="";$("note").value=""}
+function endEdit(){editId=null;$("paid").checked=false;$("save").textContent="儲存";$("cancel").style.display="none";$("loc").value="";$("note").value=""}
 function startEdit(e){
-  editId=e.id;$("date").value=e.date;$("loc").value=e.loc;$("note").value=e.note||"";
+  editId=e.id;$("date").value=e.date;$("loc").value=e.loc;$("note").value=e.note||"";$("paid").checked=!!e.paid;
   if(ASG.includes(e.who)){asg=e.who;asgCustom=false;$("asgIn").value=""}else{asgCustom=true;$("asgIn").value=e.who}
   wk=new Set(e.ws.filter(k=>WK.includes(k)));
   const o=e.ws.filter(k=>!WK.includes(k));wkCustom=o.length>0;$("wkIn").value=o.join("、");
@@ -242,7 +247,7 @@ $("save").onclick=()=>{
   if(amtCustom&&(!raw||!(money>=0)))return toast("請輸入正確金額");
   if(money===null)return toast("自動金額僅適用志豪、阿意承接，請改選金額");
   const was=editId;
-  const rec={id:was||Date.now(),date,loc,who,ws,amt:money,note:$("note").value.trim()};
+  const rec={id:was||Date.now(),date,loc,who,ws,amt:money,note:$("note").value.trim(),paid:$("paid").checked};
   if(was)data=data.map(e=>e.id===was?rec:e);else data.push(rec);
   persist();endEdit();toast(was?"已更新":"已儲存");renderAll();
 };
@@ -251,7 +256,7 @@ function del(id,btn){
   if(btn.dataset.s!=="1"){btn.dataset.s="1";btn.textContent="確定刪除";setTimeout(()=>{btn.dataset.s="";btn.textContent="刪除"},2500);return}
   data=data.filter(e=>e.id!==id);if(editId===id)endEdit();persist();renderAll();
 }
-function entryEl(e,canDel){
+function entryEl(e,canDel,showPaid){
   const d=document.createElement("div");d.className="ent";
   const t=document.createElement("div");t.className="t";
   const l=document.createElement("span");l.textContent=e.date.slice(5).replace("-","/")+"　"+e.loc;t.appendChild(l);
@@ -259,7 +264,11 @@ function entryEl(e,canDel){
     const ed=document.createElement("button");ed.className="x";ed.textContent="修改";ed.onclick=()=>startEdit(e);
     const x=document.createElement("button");x.className="x";x.textContent="刪除";x.onclick=()=>del(e.id,x);
     bs.append(ed,x);t.appendChild(bs)}
-  const s=document.createElement("div");s.className="d";s.textContent="承接 "+e.who+"　｜　"+e.ws.join("、")+"（"+e.ws.length+" 人）　｜　$"+fmt(e.amt);
+  const s=document.createElement("div");s.className="d";s.textContent="承接 "+e.who+"　｜　"+e.ws.join("、")+"（"+e.ws.length+" 人）　｜　$"+fmt(e.amt)+(!showPaid&&e.paid?"　｜　已結清":"");
+  if(showPaid){const lb=document.createElement("label");lb.className="ck";
+    const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!e.paid;
+    cb.onchange=()=>{e.paid=cb.checked;persist();renderAll()};
+    lb.append(cb,"已結清");s.append("　｜　",lb)}
   d.append(t,s);
   if(e.note){const n=document.createElement("div");n.className="nt";n.textContent="備注：" +e.note;d.appendChild(n)}
   return d;
@@ -325,11 +334,12 @@ function renderSum(){
   box.appendChild(c1);
   const c3=document.createElement("details");c3.className="card fold";
   const sm=document.createElement("summary");sm.textContent="明細（"+list.length+" 筆）";c3.appendChild(sm);
-  list.forEach(e=>c3.appendChild(entryEl(e,true)));
+  list.forEach(e=>c3.appendChild(entryEl(e,true,true)));
   c3.open=foldOpen;c3.ontoggle=()=>{foldOpen=c3.open};
   box.appendChild(c3);
 }
-const line=e=>e.date.slice(5).replace("-","/")+" | "+e.loc+" | "+e.ws.join("、")+" | "+fmt(e.amt)+(e.note?" | "+e.note:"");
+const line=e=>e.date.slice(5).replace("-","/")+" | "+e.loc+" | "+e.ws.join("、")+" | "+fmt(e.amt)+(e.paid?" | 已結清":"")+(e.note?" | "+e.note:"");
+const tot=l=>{const u=l.filter(e=>!e.paid),p=l.filter(e=>e.paid);return "總計："+u.length+" 筆 | "+fmt(sum(u))+" 元\n"+(p.length?"已結清："+p.length+" 筆 | "+fmt(sum(p))+" 元（不計入總計）\n":"")};
 function buildText(m){
   const list=inMonth(m),[y,mm]=m.split("-");
   let t=y+" 年 "+Number(mm)+" 月 工作紀錄\n";
@@ -338,9 +348,9 @@ function buildText(m){
   const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
   fixed.concat(ex).forEach(k=>{
     const l=list.filter(e=>e.who===k);
-    t+="\n【"+k+"】\n"+(l.length?l.map(line).join("\n")+"\n":"（無）\n")+"總計："+l.length+" 筆 | "+fmt(sum(l))+" 元\n";
+    t+="\n【"+k+"】\n"+(l.length?l.map(line).join("\n")+"\n":"（無）\n")+tot(l);
   });
-  return t+"\n全部總計："+list.length+" 筆 | "+fmt(sum(list))+" 元\n";
+  return t+"\n全部"+tot(list);
 }
 async function copyText(t,ta){try{await navigator.clipboard.writeText(t);toast("已複製")}catch(e){ta.select();try{document.execCommand("copy");toast("已複製")}catch(_){toast("請長按文字手動複製")}}}
 function renderOut(){
@@ -351,7 +361,7 @@ function renderOut(){
   const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
   fixed.concat(ex).forEach(k=>{
     const l=list.filter(e=>e.who===k);
-    const txt=y+" 年 "+Number(mm)+" 月 "+k+" 工作紀錄\n"+(l.length?l.map(line).join("\n"):"（無）")+"\n總計："+l.length+" 筆 | "+fmt(sum(l))+" 元\n";
+    const txt=y+" 年 "+Number(mm)+" 月 "+k+" 工作紀錄\n"+(l.length?l.map(line).join("\n"):"（無）")+"\n"+tot(l);
     const c=card(k);const w=document.createElement("div");w.style.padding="12px";
     const ta=document.createElement("textarea");ta.readOnly=true;ta.value=txt;ta.rows=Math.min(l.length+3,10);
     const b=document.createElement("button");b.className="btn ghost";b.textContent="複製 "+k;b.onclick=()=>copyText(txt,ta);
@@ -387,7 +397,7 @@ function parseBackup(txt){
   let j;try{j=JSON.parse(txt)}catch(e){return null}
   const arr=Array.isArray(j)?j:(j&&Array.isArray(j.records)?j.records:null);
   if(!arr)return null;
-  return arr.filter(e=>e&&typeof e.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)&&typeof e.loc==="string"&&typeof e.who==="string"&&Array.isArray(e.ws)).map((e,i)=>({id:Number(e.id)||Date.now()+i,date:e.date,loc:e.loc,who:e.who,ws:e.ws.map(String),amt:Number(e.amt)||0,note:String(e.note||"")}));
+  return arr.filter(e=>e&&typeof e.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)&&typeof e.loc==="string"&&typeof e.who==="string"&&Array.isArray(e.ws)).map((e,i)=>({id:Number(e.id)||Date.now()+i,date:e.date,loc:e.loc,who:e.who,ws:e.ws.map(String),amt:Number(e.amt)||0,note:String(e.note||""),paid:!!e.paid}));
 }
 function setPending(txt){pending=parseBackup(txt);$("rinfo").textContent=pending===null?"格式不正確，請確認是本程式的備份內容":pending.length?"偵測到 "+pending.length+" 筆紀錄，按「還原」套用":"備份內沒有可用的紀錄"}
 const backupText=()=>JSON.stringify({app:"worklog",version:1,exported:new Date().toISOString(),records:data},null,2);
