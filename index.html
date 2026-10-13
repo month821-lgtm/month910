@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="藍藍工作紀錄">
+<meta name="apple-mobile-web-app-title" content="工作紀錄">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#faf7f0">
 <meta name="color-scheme" content="only light">
@@ -39,6 +39,8 @@ input:focus,textarea:focus{border-color:var(--acc)}
 .row .m{color:var(--mute);font-size:14px}
 .ent .t{display:flex;justify-content:space-between;gap:12px}
 .ent .d{color:var(--mute);font-size:13px;margin-top:2px}
+.ent .nt{color:var(--fg);font-size:13px;margin-top:4px;opacity:.8}
+.ent .bs{display:flex;gap:16px}
 .x{font:inherit;font-size:13px;color:var(--mute);background:none;border:0;padding:0;cursor:pointer}
 .fold summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);padding:12px 14px;background:var(--soft)}
 .fold summary::-webkit-details-marker{display:none}
@@ -96,7 +98,10 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     <div class="chips" id="am"></div>
     <div class="sub" id="amSub"><input type="text" id="amIn" inputmode="numeric" placeholder="輸入金額" autocomplete="off"></div>
     <div class="cnt" id="amHint"></div>
+    <label for="note">備注</label>
+    <input type="text" id="note" placeholder="選填" autocomplete="off">
     <button class="btn" id="save">儲存</button>
+    <button class="btn ghost" id="cancel" style="display:none">取消修改</button>
   </div>
   <div class="lb2">最近紀錄</div>
   <div id="recent"></div>
@@ -167,6 +172,24 @@ let asg="藍",asgCustom=false,wk=new Set(["藍"]),wkCustom=false,amt="auto",amtC
 const ASG=["藍","志豪","阿意"],WK=["藍","峰"],AMT=[3000,1500],RATE={"藍":3000,"峰":1500};
 const names=()=>[...wk].concat(wkCustom?$("wkIn").value.split(/[,，、\s]+/).filter(Boolean):[]);
 const autoAmt=()=>{if(asgCustom||!(asg==="志豪"||asg==="阿意"))return null;return [...new Set(names())].reduce((n,k)=>n+(RATE[k]||0),0)};
+function personAmt(e,k){
+  if(!e.ws.includes(k))return 0;
+  if(e.who==="藍"){
+    if(k==="峰")return 1500;
+    if(k==="藍"){const o=e.ws.filter(x=>x!=="藍").reduce((n,x)=>n+(x==="峰"?1500:0),0);return Math.max(0,(e.amt||0)-o)}
+    return 0;
+  }
+  return RATE[k]||0;
+}
+function amHintText(){
+  if(!amtCustom&&amt==="auto"){const v=autoAmt();return v===null?"自動計算僅適用志豪、阿意承接，其他請改選金額":"藍 3,000、峰 1,500，本筆合計 "+fmt(v)}
+  if(!asgCustom&&asg==="藍"){
+    const m=amtCustom?Number($("amIn").value.replace(/[,，\s]/g,"")):amt;
+    const ws=[...new Set(names())].filter(k=>k==="藍"||k==="峰");
+    if(m>0&&ws.length){const e={who:"藍",ws:ws,amt:m};return "分配："+ws.map(k=>k+" "+fmt(personAmt(e,k))).join("、")}
+  }
+  return "";
+}
 const sum=l=>l.reduce((n,e)=>n+(e.amt||0),0);
 const dc=l=>new Set(l.map(e=>e.date)).size;
 
@@ -187,10 +210,24 @@ function drawChips(){
   AMT.forEach(n=>chip(m,fmt(n),!amtCustom&&amt===n,()=>{amt=n;amtCustom=false;drawChips()}));
   chip(m,"自訂",amtCustom,()=>{amtCustom=true;drawChips();$("amIn").focus()});
   $("amSub").classList.toggle("on",amtCustom);
-  const ah=$("amHint");
-  if(!amtCustom&&amt==="auto"){const v=autoAmt();ah.textContent=v===null?"自動計算僅適用志豪、阿意承接，其他請改選金額":"藍 3,000、峰 1,500，本筆合計 "+fmt(v)}else ah.textContent="";
+  $("amHint").textContent=amHintText();
 }
-$("wkIn").oninput=()=>{$("cnt").textContent="共 "+new Set(names()).size+" 人"};
+$("wkIn").oninput=()=>{$("cnt").textContent="共 "+new Set(names()).size+" 人";$("amHint").textContent=amHintText()};
+$("amIn").oninput=()=>{$("amHint").textContent=amHintText()};
+let editId=null,foldOpen=false;
+function endEdit(){editId=null;$("save").textContent="儲存";$("cancel").style.display="none";$("loc").value="";$("note").value=""}
+function startEdit(e){
+  editId=e.id;$("date").value=e.date;$("loc").value=e.loc;$("note").value=e.note||"";
+  if(ASG.includes(e.who)){asg=e.who;asgCustom=false;$("asgIn").value=""}else{asgCustom=true;$("asgIn").value=e.who}
+  wk=new Set(e.ws.filter(k=>WK.includes(k)));
+  const o=e.ws.filter(k=>!WK.includes(k));wkCustom=o.length>0;$("wkIn").value=o.join("、");
+  amtCustom=true;$("amIn").value=String(e.amt);
+  $("save").textContent="更新";$("cancel").style.display="block";
+  drawChips();
+  document.querySelector('nav button[data-p="0"]').click();
+  toast("修改中");
+}
+$("cancel").onclick=()=>{endEdit();toast("已取消")};
 
 $("save").onclick=()=>{
   const loc=$("loc").value.trim(),date=$("date").value;
@@ -204,21 +241,28 @@ $("save").onclick=()=>{
   const money=amtCustom?Number(raw):(amt==="auto"?autoAmt():amt);
   if(amtCustom&&(!raw||!(money>=0)))return toast("請輸入正確金額");
   if(money===null)return toast("自動金額僅適用志豪、阿意承接，請改選金額");
-  data.push({id:Date.now(),date,loc,who,ws,amt:money});persist();
-  $("loc").value="";toast("已儲存");renderAll();
+  const was=editId;
+  const rec={id:was||Date.now(),date,loc,who,ws,amt:money,note:$("note").value.trim()};
+  if(was)data=data.map(e=>e.id===was?rec:e);else data.push(rec);
+  persist();endEdit();toast(was?"已更新":"已儲存");renderAll();
 };
 
 function del(id,btn){
   if(btn.dataset.s!=="1"){btn.dataset.s="1";btn.textContent="確定刪除";setTimeout(()=>{btn.dataset.s="";btn.textContent="刪除"},2500);return}
-  data=data.filter(e=>e.id!==id);persist();renderAll();
+  data=data.filter(e=>e.id!==id);if(editId===id)endEdit();persist();renderAll();
 }
 function entryEl(e,canDel){
   const d=document.createElement("div");d.className="ent";
   const t=document.createElement("div");t.className="t";
   const l=document.createElement("span");l.textContent=e.date.slice(5).replace("-","/")+"　"+e.loc;t.appendChild(l);
-  if(canDel){const x=document.createElement("button");x.className="x";x.textContent="刪除";x.onclick=()=>del(e.id,x);t.appendChild(x)}
+  if(canDel){const bs=document.createElement("span");bs.className="bs";
+    const ed=document.createElement("button");ed.className="x";ed.textContent="修改";ed.onclick=()=>startEdit(e);
+    const x=document.createElement("button");x.className="x";x.textContent="刪除";x.onclick=()=>del(e.id,x);
+    bs.append(ed,x);t.appendChild(bs)}
   const s=document.createElement("div");s.className="d";s.textContent="承接 "+e.who+"　｜　"+e.ws.join("、")+"（"+e.ws.length+" 人）　｜　$"+fmt(e.amt);
-  d.append(t,s);return d;
+  d.append(t,s);
+  if(e.note){const n=document.createElement("div");n.className="nt";n.textContent="備注：" +e.note;d.appendChild(n)}
+  return d;
 }
 const inMonth=m=>data.filter(e=>e.date.startsWith(m)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.id-b.id);
 function card(t){const c=document.createElement("div");c.className="card";const h=document.createElement("div");h.className="ch";h.textContent=t;c.appendChild(h);return c}
@@ -237,7 +281,7 @@ function calEl(list){
   const c=card("月曆");
   c.firstChild.style.cssText="display:flex;justify-content:space-between";
   const lg=document.createElement("span");lg.className="leg";
-  lg.innerHTML='<span><i class="dot" style="background:#dcebf8"></i>志豪</span><span><i class="dot" style="background:#dcf0dc"></i>阿意</span>';
+  lg.innerHTML='<span><i class="dot" style="background:#fbefc2"></i>藍</span><span><i class="dot" style="background:#dcebf8"></i>志豪</span><span><i class="dot" style="background:#dcf0dc"></i>阿意</span>';
   c.firstChild.appendChild(lg);
   const w=document.createElement("div");w.className="cal";
   const hd=document.createElement("div");hd.className="cw";
@@ -251,11 +295,11 @@ function calEl(list){
     const cell=document.createElement("div");cell.className="cd";
     const b=document.createElement("b");b.textContent=d;cell.appendChild(b);
     if(es.length){
-      const zh=es.some(e=>e.who==="志豪"),ay=es.some(e=>e.who==="阿意");
-      if(zh&&ay)cell.style.background="linear-gradient(135deg,#dcebf8 50%,#dcf0dc 50%)";
-      else if(zh)cell.classList.add("zh");
-      else if(ay)cell.classList.add("ay");
-      else cell.classList.add("has");
+      const CC={"藍":"#fbefc2","志豪":"#dcebf8","阿意":"#dcf0dc"};
+      const cs=[...new Set(es.map(e=>CC[e.who]).filter(Boolean))];
+      if(!cs.length)cell.classList.add("has");
+      else if(cs.length===1)cell.style.background=cs[0];
+      else cell.style.background="linear-gradient(135deg,"+cs.map((c,i)=>c+" "+(i*100/cs.length)+"% "+((i+1)*100/cs.length)+"%").join(",")+")";
       const t=document.createElement("i");t.textContent=[...new Set(es.flatMap(e=>e.ws))].join("、");cell.appendChild(t);
     }
     g.appendChild(cell);
@@ -272,7 +316,7 @@ function renderSum(){
   tb.innerHTML="<thead><tr><th>人員</th><th>工作天數</th><th>金額總計</th></tr></thead>";
   const tbd=document.createElement("tbody");
   pf.concat(px).forEach(k=>{const l=list.filter(e=>e.ws.includes(k));const r=RATE[k];const tr=document.createElement("tr");
-    [k,dc(l)+" 天",r?"$"+fmt(l.length*r):"—"].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});tbd.appendChild(tr)});
+    [k,dc(l)+" 天",r?"$"+fmt(l.reduce((n,e)=>n+personAmt(e,k),0)):"—"].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});tbd.appendChild(tr)});
   tb.appendChild(tbd);c2.appendChild(tb);box.appendChild(c2);
   const fixed=["藍","志豪","阿意"];
   const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
@@ -281,10 +325,11 @@ function renderSum(){
   box.appendChild(c1);
   const c3=document.createElement("details");c3.className="card fold";
   const sm=document.createElement("summary");sm.textContent="明細（"+list.length+" 筆）";c3.appendChild(sm);
-  list.forEach(e=>c3.appendChild(entryEl(e,false)));
+  list.forEach(e=>c3.appendChild(entryEl(e,true)));
+  c3.open=foldOpen;c3.ontoggle=()=>{foldOpen=c3.open};
   box.appendChild(c3);
 }
-const line=e=>e.date.slice(5).replace("-","/")+" | "+e.loc+" | "+e.ws.join("、")+" | "+fmt(e.amt);
+const line=e=>e.date.slice(5).replace("-","/")+" | "+e.loc+" | "+e.ws.join("、")+" | "+fmt(e.amt)+(e.note?" | "+e.note:"");
 function buildText(m){
   const list=inMonth(m),[y,mm]=m.split("-");
   let t=y+" 年 "+Number(mm)+" 月 工作紀錄\n";
@@ -342,7 +387,7 @@ function parseBackup(txt){
   let j;try{j=JSON.parse(txt)}catch(e){return null}
   const arr=Array.isArray(j)?j:(j&&Array.isArray(j.records)?j.records:null);
   if(!arr)return null;
-  return arr.filter(e=>e&&typeof e.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)&&typeof e.loc==="string"&&typeof e.who==="string"&&Array.isArray(e.ws)).map((e,i)=>({id:Number(e.id)||Date.now()+i,date:e.date,loc:e.loc,who:e.who,ws:e.ws.map(String),amt:Number(e.amt)||0}));
+  return arr.filter(e=>e&&typeof e.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)&&typeof e.loc==="string"&&typeof e.who==="string"&&Array.isArray(e.ws)).map((e,i)=>({id:Number(e.id)||Date.now()+i,date:e.date,loc:e.loc,who:e.who,ws:e.ws.map(String),amt:Number(e.amt)||0,note:String(e.note||"")}));
 }
 function setPending(txt){pending=parseBackup(txt);$("rinfo").textContent=pending===null?"格式不正確，請確認是本程式的備份內容":pending.length?"偵測到 "+pending.length+" 筆紀錄，按「還原」套用":"備份內沒有可用的紀錄"}
 const backupText=()=>JSON.stringify({app:"worklog",version:1,exported:new Date().toISOString(),records:data},null,2);
