@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="工作紀錄">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fbf7ec">
+<title>工作紀錄</title>
+<style>
+:root{--bg:#fbf7ec;--card:#fffdf6;--soft:#f4ecd8;--fg:#4a3b2f;--mute:#9a8b78;--line:#e6d9bd;--acc:#6b5440;--accfg:#fffdf6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1a15;--card:#28221b;--soft:#322a21;--fg:#f1e8d6;--mute:#a39580;--line:#3d3427;--acc:#f1e8d6;--accfg:#1f1a15}}
+:root[data-theme="dark"]{--bg:#1f1a15;--card:#28221b;--soft:#322a21;--fg:#f1e8d6;--mute:#a39580;--line:#3d3427;--acc:#f1e8d6;--accfg:#1f1a15}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 "Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;display:flex;flex-direction:column}
+main{flex:1;overflow-y:auto;padding:26px 18px 28px;max-width:520px;width:100%;margin:0 auto}
+h1{font-size:22px;font-weight:700;margin:0 0 18px;letter-spacing:.03em}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:14px;overflow:hidden}
+.card.pad{padding:2px 16px 18px;margin-top:0}
+.card>.ch{font-size:13px;color:var(--mute);padding:10px 14px;border-bottom:1px solid var(--line);background:var(--soft)}
+.card .row,.card .ent{padding:12px 14px;border-bottom:1px solid var(--line)}
+.card .row:last-child,.card .ent:last-child{border-bottom:0}
+label,.lb{display:block;font-size:13px;color:var(--mute);margin:18px 0 7px}
+.lb2{font-size:13px;color:var(--mute);margin:26px 2px 0}
+input[type=text],input[type=date]{width:100%;min-height:46px;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 13px;outline:0;-webkit-appearance:none;appearance:none;text-align:left}
+input:focus,textarea:focus{border-color:var(--acc)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:15px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:7px 16px;cursor:pointer}
+.chip.on{background:var(--acc);color:var(--accfg);border-color:var(--acc)}
+.sub{margin-top:10px;display:none}.sub.on{display:block}
+.cnt{font-size:13px;color:var(--mute);margin-top:8px}
+.btn{width:100%;font:inherit;font-weight:600;color:var(--accfg);background:var(--acc);border:1px solid var(--acc);border-radius:12px;padding:13px;margin-top:22px;cursor:pointer}
+.btn.ghost{background:var(--card);color:var(--fg);border-color:var(--line);margin:12px 0 0}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.row .m{color:var(--mute);font-size:14px}
+.ent .t{display:flex;justify-content:space-between;gap:12px}
+.ent .d{color:var(--mute);font-size:13px;margin-top:2px}
+.x{font:inherit;font-size:13px;color:var(--mute);background:none;border:0;padding:0;cursor:pointer}
+.empty{color:var(--mute);font-size:14px;padding:18px 14px;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(3,1fr)}
+.stats div{padding:14px 12px;border-right:1px solid var(--line);font-size:13px;color:var(--mute)}
+.stats div:last-child{border-right:0}
+.stats b{display:block;font-size:26px;font-weight:700;color:var(--fg);line-height:1.25}
+.mnav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 4px}
+.arr{font:inherit;font-size:28px;line-height:1;color:var(--fg);background:none;border:0;padding:6px 16px;cursor:pointer}
+.mlab{font-weight:600}
+textarea{display:block;width:100%;font:inherit;font-size:14px;line-height:1.6;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;resize:none;outline:0}
+#out{display:none}
+.card.pad textarea{margin-top:4px}
+nav{display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--line);background:var(--card)}
+nav button{flex:1;font:inherit;font-size:14px;color:var(--mute);background:none;border:0;border-radius:12px;padding:10px 0;cursor:pointer}
+nav button.on{color:var(--fg);font-weight:700;background:var(--soft)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--acc);color:var(--accfg);padding:9px 18px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<section id="p0" class="on">
+  <h1>藍-新增工作紀錄</h1>
+  <div class="card pad">
+    <label for="date">日期</label>
+    <input type="date" id="date">
+    <label for="loc">工作地點</label>
+    <input type="text" id="loc" placeholder="輸入地點" autocomplete="off">
+    <div class="lb">工作承接</div>
+    <div class="chips" id="asg"></div>
+    <div class="sub" id="asgSub"><input type="text" id="asgIn" placeholder="輸入承接姓名" autocomplete="off"></div>
+    <div class="lb">人員</div>
+    <div class="chips" id="wk"></div>
+    <div class="sub" id="wkSub"><input type="text" id="wkIn" placeholder="輸入姓名，多人以逗號分隔" autocomplete="off"></div>
+    <div class="cnt" id="cnt"></div>
+    <div class="lb">金額</div>
+    <div class="chips" id="am"></div>
+    <div class="sub" id="amSub"><input type="text" id="amIn" inputmode="numeric" placeholder="輸入金額" autocomplete="off"></div>
+    <div class="cnt" id="amHint"></div>
+    <button class="btn" id="save">儲存</button>
+  </div>
+  <div class="lb2">最近紀錄</div>
+  <div id="recent"></div>
+</section>
+<section id="p1">
+  <h1>整月查詢</h1>
+  <div class="mnav"><button type="button" class="arr" id="prev1" aria-label="上個月">‹</button><span class="mlab" id="mlab1"></span><button type="button" class="arr" id="next1" aria-label="下個月">›</button></div>
+  <div id="sum"></div>
+</section>
+<section id="p2">
+  <h1>匯出文字檔</h1>
+  <div class="mnav"><button type="button" class="arr" id="prev" aria-label="上個月">‹</button><span class="mlab" id="mlab"></span><button type="button" class="arr" id="next" aria-label="下個月">›</button></div>
+  <div id="outs"></div>
+  <textarea id="out" readonly></textarea>
+  <button class="btn" id="dl">下載全部 .txt</button>
+  <button class="btn ghost" id="cp">複製全部</button>
+</section>
+<section id="p3">
+  <h1>設定</h1>
+  <div class="card"><div class="ch">備份</div><div style="padding:14px">
+    <div class="cnt" style="margin:0" id="setCnt"></div>
+    <button class="btn" id="bk" style="margin-top:12px">下載 JSON 備份</button>
+    <button class="btn ghost" id="bkc">複製 JSON 文字</button>
+  </div></div>
+  <div class="card"><div class="ch">還原</div><div style="padding:14px">
+    <div class="chips" id="rmode"></div>
+    <button class="btn ghost" id="pick" style="margin-top:14px">選擇備份檔案</button>
+    <input type="file" id="fl" accept=".json,application/json,text/plain" hidden>
+    <div class="lb">或貼上 JSON 文字</div>
+    <textarea id="paste" rows="5" placeholder="貼上備份內容"></textarea>
+    <div class="cnt" id="rinfo"></div>
+    <button class="btn" id="rs">還原</button>
+  </div></div>
+</section>
+</main>
+<nav id="nav"><button class="on" data-p="0">工作紀錄</button><button data-p="1">總結</button><button data-p="2">匯出</button><button data-p="3">設定</button></nav>
+<div class="toast" id="toast"></div>
+<script>
+// App icon for Safari "Add to Home Screen"
+(function(){try{
+const c=document.createElement("canvas");c.width=c.height=512;const x=c.getContext("2d");
+const rr=(a,b,w,h,r)=>{x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()};
+x.fillStyle="#fbf1d8";x.fillRect(0,0,512,512);
+x.lineCap=x.lineJoin="round";x.strokeStyle="#5a3a33";x.lineWidth=13;
+x.save();x.translate(240,272);x.rotate(-.22);
+rr(-120,-130,240,280,18);x.fillStyle="#fffdf6";x.fill();x.stroke();
+for(let i=0;i<5;i++){const y=-60+i*45;x.beginPath();x.moveTo(-70,y);x.lineTo(i==4?0:60,y);x.stroke()}
+[-50,25].forEach(cx=>{x.beginPath();x.ellipse(cx,-130,20,30,0,0,7);x.fillStyle="#d8d8dc";x.fill();x.stroke()});
+x.restore();
+const T=[332,361],E=[436,52],L=Math.hypot(E[0]-T[0],E[1]-T[1]),ux=(E[0]-T[0])/L,uy=(E[1]-T[1])/L,nx=-uy,ny=ux,w=30,k=75;
+const P=(a,b)=>[T[0]+ux*a+nx*b,T[1]+uy*a+ny*b];
+x.beginPath();[P(0,0),P(k,w),P(L,w),P(L,-w),P(k,-w)].forEach((q,i)=>i?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]));x.closePath();x.fillStyle="#f7dd3c";x.fill();x.lineWidth=13;x.stroke();
+x.beginPath();x.moveTo(P(k,w)[0],P(k,w)[1]);x.lineTo(P(k,-w)[0],P(k,-w)[1]);x.lineWidth=10;x.stroke();
+const u=c.toDataURL("image/png");
+[["apple-touch-icon",u],["icon",u]].forEach(a=>{const l=document.createElement("link");l.rel=a[0];l.href=a[1];document.head.appendChild(l)});
+}catch(e){}})();
+
+const KEY="worklog:v1";
+let data=[];
+try{data=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){data=[]}
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+data.forEach(e=>{if(e.who==="自己")e.who="藍";e.ws=(e.ws||[]).map(k=>k==="自己"?"藍":k)});persist();
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n||0).toLocaleString("en-US");
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+let month=today().slice(0,7);
+let asg="藍",asgCustom=false,wk=new Set(["藍"]),wkCustom=false,amt="auto",amtCustom=false;
+const ASG=["藍","志豪","阿意"],WK=["藍","峰"],AMT=[3000,1500],RATE={"藍":3000,"峰":1500};
+const names=()=>[...wk].concat(wkCustom?$("wkIn").value.split(/[,，、\s]+/).filter(Boolean):[]);
+const autoAmt=()=>{if(asgCustom||!(asg==="志豪"||asg==="阿意"))return null;return [...new Set(names())].reduce((n,k)=>n+(RATE[k]||0),0)};
+const sum=l=>l.reduce((n,e)=>n+(e.amt||0),0);
+const dc=l=>new Set(l.map(e=>e.date)).size;
+
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),1600)}
+function chip(box,label,on,fn){const b=document.createElement("button");b.type="button";b.className="chip"+(on?" on":"");b.textContent=label;b.onclick=fn;box.appendChild(b)}
+function drawChips(){
+  const a=$("asg");a.innerHTML="";
+  ASG.forEach(n=>chip(a,n,!asgCustom&&asg===n,()=>{asg=n;asgCustom=false;drawChips()}));
+  chip(a,"自訂",asgCustom,()=>{asgCustom=true;drawChips();$("asgIn").focus()});
+  $("asgSub").classList.toggle("on",asgCustom);
+  const w=$("wk");w.innerHTML="";
+  WK.forEach(n=>chip(w,n,wk.has(n),()=>{wk.has(n)?wk.delete(n):wk.add(n);drawChips()}));
+  chip(w,"自訂",wkCustom,()=>{wkCustom=!wkCustom;drawChips();if(wkCustom)$("wkIn").focus()});
+  $("wkSub").classList.toggle("on",wkCustom);
+  $("cnt").textContent="共 "+new Set(names()).size+" 人";
+  const m=$("am");m.innerHTML="";
+  chip(m,"自動",!amtCustom&&amt==="auto",()=>{amt="auto";amtCustom=false;drawChips()});
+  AMT.forEach(n=>chip(m,fmt(n),!amtCustom&&amt===n,()=>{amt=n;amtCustom=false;drawChips()}));
+  chip(m,"自訂",amtCustom,()=>{amtCustom=true;drawChips();$("amIn").focus()});
+  $("amSub").classList.toggle("on",amtCustom);
+  const ah=$("amHint");
+  if(!amtCustom&&amt==="auto"){const v=autoAmt();ah.textContent=v===null?"自動計算僅適用志豪、阿意承接，其他請改選金額":"藍 3,000、峰 1,500，本筆合計 "+fmt(v)}else ah.textContent="";
+}
+$("wkIn").oninput=()=>{$("cnt").textContent="共 "+new Set(names()).size+" 人"};
+
+$("save").onclick=()=>{
+  const loc=$("loc").value.trim(),date=$("date").value;
+  const who=asgCustom?$("asgIn").value.trim():asg;
+  const ws=[...new Set(names())];
+  if(!date)return toast("請選擇日期");
+  if(!loc)return toast("請輸入工作地點");
+  if(!who)return toast("請輸入承接姓名");
+  if(!ws.length)return toast("請至少選擇一位人員");
+  const raw=$("amIn").value.replace(/[,，\s]/g,"");
+  const money=amtCustom?Number(raw):(amt==="auto"?autoAmt():amt);
+  if(amtCustom&&(!raw||!(money>=0)))return toast("請輸入正確金額");
+  if(money===null)return toast("自動金額僅適用志豪、阿意承接，請改選金額");
+  data.push({id:Date.now(),date,loc,who,ws,amt:money});persist();
+  $("loc").value="";toast("已儲存");renderAll();
+};
+
+function del(id,btn){
+  if(btn.dataset.s!=="1"){btn.dataset.s="1";btn.textContent="確定刪除";setTimeout(()=>{btn.dataset.s="";btn.textContent="刪除"},2500);return}
+  data=data.filter(e=>e.id!==id);persist();renderAll();
+}
+function entryEl(e,canDel){
+  const d=document.createElement("div");d.className="ent";
+  const t=document.createElement("div");t.className="t";
+  const l=document.createElement("span");l.textContent=e.date.slice(5).replace("-","/")+"　"+e.loc;t.appendChild(l);
+  if(canDel){const x=document.createElement("button");x.className="x";x.textContent="刪除";x.onclick=()=>del(e.id,x);t.appendChild(x)}
+  const s=document.createElement("div");s.className="d";s.textContent="承接 "+e.who+"　｜　"+e.ws.join("、")+"（"+e.ws.length+" 人）　｜　$"+fmt(e.amt);
+  d.append(t,s);return d;
+}
+const inMonth=m=>data.filter(e=>e.date.startsWith(m)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.id-b.id);
+function card(t){const c=document.createElement("div");c.className="card";const h=document.createElement("div");h.className="ch";h.textContent=t;c.appendChild(h);return c}
+function rowEl(a,b){const r=document.createElement("div");r.className="row";const x=document.createElement("span");x.textContent=a;const y=document.createElement("span");y.className="m";y.textContent=b;r.append(x,y);return r}
+
+function renderRecent(){
+  const r=$("recent");r.innerHTML="";
+  const c=document.createElement("div");c.className="card";
+  const l=[...data].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:b.id-a.id).slice(0,8);
+  if(!l.length){c.innerHTML='<div class="empty">還沒有紀錄，填完上方欄位後儲存。</div>'}
+  else l.forEach(e=>c.appendChild(entryEl(e,true)));
+  r.appendChild(c);
+}
+function renderSum(){
+  const box=$("sum");box.innerHTML="";const list=inMonth(month);
+  if(!list.length){box.innerHTML='<div class="card"><div class="empty">這個月沒有紀錄。</div></div>';return}
+  const st=document.createElement("div");st.className="card stats";
+  st.innerHTML="<div><b>"+dc(list)+"</b>工作天數</div><div><b>"+list.length+"</b>筆數</div><div><b>"+fmt(sum(list))+"</b>總金額</div>";
+  box.appendChild(st);
+  const fixed=["藍","志豪","阿意"];
+  const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
+  const c1=card("承接");
+  fixed.concat(ex).forEach(k=>{const l=list.filter(e=>e.who===k);c1.appendChild(rowEl(k,dc(l)+" 天　$"+fmt(sum(l))))});
+  box.appendChild(c1);
+  const pf=["藍","峰"],px=[...new Set(list.flatMap(e=>e.ws))].filter(k=>!pf.includes(k));
+  const c2=card("人員");
+  pf.concat(px).forEach(k=>c2.appendChild(rowEl(k,dc(list.filter(e=>e.ws.includes(k)))+" 天")));
+  box.appendChild(c2);
+  const c3=card("明細（"+list.length+" 筆）");
+  list.forEach(e=>c3.appendChild(entryEl(e,false)));
+  box.appendChild(c3);
+}
+const line=e=>e.date.slice(5).replace("-","/")+" | "+e.loc+" | "+e.ws.join("、")+" | "+fmt(e.amt);
+function buildText(m){
+  const list=inMonth(m),[y,mm]=m.split("-");
+  let t=y+" 年 "+Number(mm)+" 月 工作紀錄\n";
+  if(!list.length)return t+"\n（本月沒有紀錄）\n";
+  const fixed=["藍","志豪","阿意"];
+  const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
+  fixed.concat(ex).forEach(k=>{
+    const l=list.filter(e=>e.who===k);
+    t+="\n【"+k+"】\n"+(l.length?l.map(line).join("\n")+"\n":"（無）\n")+"總計："+l.length+" 筆 | "+fmt(sum(l))+" 元\n";
+  });
+  return t+"\n全部總計："+list.length+" 筆 | "+fmt(sum(list))+" 元\n";
+}
+async function copyText(t,ta){try{await navigator.clipboard.writeText(t);toast("已複製")}catch(e){ta.select();try{document.execCommand("copy");toast("已複製")}catch(_){toast("請長按文字手動複製")}}}
+function renderOut(){
+  $("out").value=buildText(month);
+  const box=$("outs");box.innerHTML="";
+  const list=inMonth(month),[y,mm]=month.split("-");
+  const fixed=["藍","志豪","阿意"];
+  const ex=[...new Set(list.map(e=>e.who))].filter(k=>!fixed.includes(k));
+  fixed.concat(ex).forEach(k=>{
+    const l=list.filter(e=>e.who===k);
+    const txt=y+" 年 "+Number(mm)+" 月 "+k+" 工作紀錄\n"+(l.length?l.map(line).join("\n"):"（無）")+"\n總計："+l.length+" 筆 | "+fmt(sum(l))+" 元\n";
+    const c=card(k);const w=document.createElement("div");w.style.padding="12px";
+    const ta=document.createElement("textarea");ta.readOnly=true;ta.value=txt;ta.rows=Math.min(l.length+3,10);
+    const b=document.createElement("button");b.className="btn ghost";b.textContent="複製 "+k;b.onclick=()=>copyText(txt,ta);
+    w.append(ta,b);c.appendChild(w);box.appendChild(c);
+  });
+}
+function renderAll(){renderRecent();renderSum();renderOut();$("setCnt").textContent="目前共 "+data.length+" 筆紀錄"}
+
+function setMonth(m){month=m;const [y,mm]=m.split("-");$("mlab").textContent=$("mlab1").textContent=y+" 年 "+Number(mm)+" 月";renderSum();renderOut()}
+function shift(d){const [y,m]=month.split("-").map(Number);const t=new Date(y,m-1+d,1);setMonth(t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0"))}
+$("prev").onclick=$("prev1").onclick=()=>shift(-1);
+$("next").onclick=$("next1").onclick=()=>shift(1);
+
+$("cp").onclick=()=>copyText($("out").value,$("out"));
+$("dl").onclick=async()=>{
+  try{
+    const d=window.claude&&await claude.use("downloads");
+    if(!d)throw 0;
+    await d.save({filename:"工作紀錄_"+month+".txt",data:$("out").value});toast("已下載");
+  }catch(e){
+    try{await navigator.clipboard.writeText($("out").value);toast("無法下載，已改為複製文字")}catch(_){toast("無法下載，請用複製")}
+  }
+};
+$("nav").onclick=e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("section").forEach((s,i)=>s.classList.toggle("on",i===+b.dataset.p));
+  document.querySelector("main").scrollTop=0;
+};
+let rm="merge",pending=null;
+function drawRm(){const b=$("rmode");b.innerHTML="";chip(b,"合併（保留現有）",rm==="merge",()=>{rm="merge";drawRm()});chip(b,"覆蓋（取代現有）",rm==="replace",()=>{rm="replace";drawRm()})}
+function parseBackup(txt){
+  let j;try{j=JSON.parse(txt)}catch(e){return null}
+  const arr=Array.isArray(j)?j:(j&&Array.isArray(j.records)?j.records:null);
+  if(!arr)return null;
+  return arr.filter(e=>e&&typeof e.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)&&typeof e.loc==="string"&&typeof e.who==="string"&&Array.isArray(e.ws)).map((e,i)=>({id:Number(e.id)||Date.now()+i,date:e.date,loc:e.loc,who:e.who,ws:e.ws.map(String),amt:Number(e.amt)||0}));
+}
+function setPending(txt){pending=parseBackup(txt);$("rinfo").textContent=pending===null?"格式不正確，請確認是本程式的備份內容":pending.length?"偵測到 "+pending.length+" 筆紀錄，按「還原」套用":"備份內沒有可用的紀錄"}
+const backupText=()=>JSON.stringify({app:"worklog",version:1,exported:new Date().toISOString(),records:data},null,2);
+$("bk").onclick=async()=>{
+  try{const d=window.claude&&await claude.use("downloads");if(!d)throw 0;await d.save({filename:"工作紀錄備份_"+today()+".json",data:backupText()});toast("已備份")}
+  catch(e){try{await navigator.clipboard.writeText(backupText());toast("無法下載，已改為複製 JSON")}catch(_){toast("無法下載，請用複製 JSON")}}
+};
+$("bkc").onclick=()=>copyText(backupText(),{select(){}});
+$("pick").onclick=()=>$("fl").click();
+$("fl").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const t=await f.text();$("paste").value=t;setPending(t)}catch(_){toast("讀取檔案失敗，請改用貼上")}e.target.value=""};
+$("paste").oninput=()=>{const v=$("paste").value.trim();if(v)setPending(v);else{pending=null;$("rinfo").textContent=""}};
+$("rs").onclick=()=>{
+  const b=$("rs");
+  if(!pending||!pending.length)return toast("請先選擇檔案或貼上內容");
+  if(rm==="replace"&&b.dataset.s!=="1"){b.dataset.s="1";b.textContent="再按一次，確認覆蓋";setTimeout(()=>{b.dataset.s="";b.textContent="還原"},3000);return}
+  b.dataset.s="";b.textContent="還原";
+  let n=pending.length;
+  if(rm==="replace")data=pending.slice();
+  else{const ids=new Set(data.map(e=>e.id));const add=pending.filter(e=>!ids.has(e.id));n=add.length;data=data.concat(add)}
+  persist();renderAll();pending=null;$("paste").value="";$("rinfo").textContent="";
+  toast("已還原 "+n+" 筆");
+};
+$("date").value=today();drawChips();drawRm();setMonth(month);renderAll();
+</script>
+</body>
+</html>
